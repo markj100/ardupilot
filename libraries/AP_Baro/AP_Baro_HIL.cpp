@@ -62,6 +62,7 @@ void AP_Baro::setHIL(float altitude_msl)
  */
 void AP_Baro::setHIL(uint8_t instance, float pressure, float temperature)
 {
+    _hil_mode=true;//stop overriding HIL values with onboard sensor values
     if (instance >= _num_sensors) {
         // invalid
         return;
