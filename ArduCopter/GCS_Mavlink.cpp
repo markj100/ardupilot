@@ -1630,7 +1630,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         Vector3f vel(packet.vx, packet.vy, packet.vz);
         vel *= 0.01f;
 
-        gps.setHIL(0, AP_GPS::GPS_OK_FIX_3D,
+        copter.gps.setHIL(0, AP_GPS::GPS_OK_FIX_3D,// fix 'gps not defined' error
                    packet.time_usec/1000,
                    loc, vel, 10, 0, true);
 
@@ -1646,9 +1646,10 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         accels.y = packet.yacc * (GRAVITY_MSS/1000.0f);
         accels.z = packet.zacc * (GRAVITY_MSS/1000.0f);
 
-        ins.set_gyro(0, gyros);
-
-        ins.set_accel(0, accels);
+        copter.ins.set_gyro(0, gyros);//fix ins not defined error
+        copter.ins.set_gyro(1, gyros);//prevent 'bad gyro health' error
+        copter.ins.set_accel(0, accels);//fix 'ins not defined' error
+        copter.ins.set_accel(1, accels);//prevent 'bad accel health' error
 
         copter.barometer.setHIL(packet.alt*0.001f);
         copter.compass.setHIL(0, packet.roll, packet.pitch, packet.yaw);

@@ -170,10 +170,10 @@ private:
     Compass compass;
     AP_InertialSensor ins;
 
-#if CONFIG_SONAR == ENABLED
+//#if CONFIG_SONAR == ENABLED //Not creating these objects throws numerous build errors
     RangeFinder sonar;
     bool sonar_enabled; // enable user switch for sonar
-#endif
+//#endif
 
     AP_RPM rpm_sensor;
 
