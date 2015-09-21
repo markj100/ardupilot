@@ -569,7 +569,7 @@ bool Compass::configured(void)
 void Compass::setHIL(uint8_t instance, float roll, float pitch, float yaw)
 {
     Matrix3f R;
-
+    Vector3f mag;// use temp var to calc field before transfering to Compass state
     // create a rotation matrix for the given attitude
     R.from_euler(roll, pitch, yaw);
 
@@ -580,20 +580,20 @@ void Compass::setHIL(uint8_t instance, float roll, float pitch, float yaw)
 
     // convert the earth frame magnetic vector to body frame, and
     // apply the offsets
-    _hil.field[instance] = R.mul_transpose(_hil.Bearth);
+    /*_hil.field[instance]*/mag = R.mul_transpose(_hil.Bearth);// use temp var to calc field before transfering to Compass state
 
     // apply default board orientation for this compass type. This is
     // a noop on most boards
-    _hil.field[instance].rotate(MAG_BOARD_ORIENTATION);
+    /*_hil.field[instance]*/mag.rotate(MAG_BOARD_ORIENTATION);// use temp var to calc field before transfering to Compass state
 
     // add user selectable orientation
-    _hil.field[instance].rotate((enum Rotation)_state[0].orientation.get());
+    /*_hil.field[instance]*/mag.rotate((enum Rotation)_state[0].orientation.get());// use temp var to calc field before transfering to Compass state
 
-    if (!_state[0].external) {
+    if (!_state[instance].external) {//if this compass is internal, rotate according to autopilot board orientation
         // and add in AHRS_ORIENTATION setting if not an external compass
-        _hil.field[instance].rotate(_board_orientation);
+        /*_hil.field[instance]*/mag.rotate(_board_orientation);// use temp var to calc field before transfering to Compass state
     }
-    _hil.healthy[instance] = true;
+    setHIL(instance,mag);//Use other setHIL function to set magnetic field state, health, timestamps
 }
 
 // Update raw magnetometer values from HIL mag vector
@@ -602,7 +602,9 @@ void Compass::setHIL(uint8_t instance, const Vector3f &mag)
 {
     _hil.field[instance] = mag;
     _hil.healthy[instance] = true;
+    _state[instance].healthy = true;//health variable that's actually used
     _state[instance].last_update_usec = hal.scheduler->micros();
+    _state[instance].last_update_ms   = hal.scheduler->millis();//added to match AP_Compass_Backend::publish_field()
 }
 
 const Vector3f& Compass::getHIL(uint8_t instance) const 

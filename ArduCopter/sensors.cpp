@@ -85,11 +85,17 @@ void Copter::rpm_update(void)
 // initialise compass
 void Copter::init_compass()
 {
+#if HIL_MODE == HIL_MODE_SENSORS// to make sure HIL backend is set for compass
+  compass.set_hil_mode();//this must be run before init
+#endif
     if (!compass.init() || !compass.read()) {
+#if  HIL_MODE == HIL_MODE_DISABLED
+//there's no such thing as a broken HIL compass, but compass.read doesn't return healthy on first run for HIL
         // make sure we don't pass a broken compass to DCM
         cliSerial->println_P(PSTR("COMPASS INIT ERROR"));
         Log_Write_Error(ERROR_SUBSYSTEM_COMPASS,ERROR_CODE_FAILED_TO_INITIALISE);
         return;
+#endif
     }
     ahrs.set_compass(&compass);
 }
